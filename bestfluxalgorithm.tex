@@ -1,0 +1,145 @@
+\documentclass[10pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[english, activeacute]{babel}
+\usepackage{geometry}
+\usepackage{url}
+\usepackage{algorithm}
+\usepackage{amsmath}
+\usepackage[noend]{algpseudocode}
+\usepackage{setspace}
+%\geometry{tmargin=3.0cm, lmargin=3.0cm, rmargin=2.5cm, bmargin=3.0cm}
+
+\makeatletter
+\def\BState{\State\hskip-\ALG@thistlm}
+\makeatother
+
+\title{
+\center{\emph{Best Flux Algorithm} \\}
+\author{
+        Ruediger Kneissl, Jonathan Antognini\\
+%\date{Santiago, \today}
+}}
+
+\begin{document}
+\maketitle
+
+\section{General Specifications}
+
+The Best Flux Algorithm was provided by Ruediger. The objective is to estimate
+a flux of certain source (name) given a date and frequency parameters
+\footnote{\url{http://twiki.csrg.cl/twiki/bin/view/LIRAE/SourceCatalogueVO}}.
+
+Webservice details:
+\begin{itemize}
+ \item Rest Webservice in Java 1.6 (at the moment) using Spring MVC (org.springFramework)
+ \item Database queries: XmlRpcClient (org.apache), searchMeasurements103
+ \item Output: VOTable, Java Streaming Writer (voi.vowrite)
+\end{itemize}
+
+The webservice was constructed in order to meets the standars of Simple
+Spectral Access Protocol \footnote{http://www.ivoa.net/documents/SSA/}
+
+\section{Algorithm Cases}
+
+The estimation of the flux was divided in 3 cases: 10 days time windows, 4
+months time windows and the average in time. The following subsections describe
+each procedure:
+
+\subsection{10 Days Time Windows}
+\begin{algorithm}
+\caption{bestFluxAlgorithm}\label{10days}
+\begin{algorithmic}[1]
+\Procedure{10daysTimeWindows}{time, frequency}
+\State $\textit{sameBand} \gets \text{Vector with elements in the same band}$
+\If {$sameBand.size() > \textit{1}$}: 
+\State $closestInTime \gets \text{Closest measurement in sameBand Vector}$.
+\Statex
+\State \Return {$\text{closestInTime.flux * $\left(\frac{closestInTime.frequency}{frequency}\right)^{alpha}$}$}
+\Else
+\State \Return {$\textit{Null value}$}
+\EndIf
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Average in time}
+\begin{algorithm}
+\caption{bestFluxAlgorithm}\label{4months}
+\begin{algorithmic}[1]
+\Procedure{Average in time}{time, frequency}
+\State $\textit{AllMes} \gets \text{Vector with all measurement}$
+\Statex
+\State $\textit{averageFrequency} \gets \frac{\Sigma AllMes.frequency(i)}{AllMes.size()}$
+\Statex
+\State $\textit{averageFlux} \gets \frac{\Sigma AllMes.flux(i)}{AllMes.size()}$
+\Statex
+\State $\textit{standDevFlux} \gets \frac{\Sigma (AllMes.flux(i) - averageFlux)^2}{AllMes.size()}$
+\Statex
+\State \Return {$\textit{averageFrequency, averageFlux, standDevFlux}$}
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+\section{4 Months Time Windows}
+In the 4 months time windows we try to estimate the flux using:
+$$ \mathbf{Flux} = (a(t-t_0)+b)*\left(\frac{f_0}{f}\right)^\alpha $$
+where: $a,b,\alpha$ are parameters of the non-linear regression; $t_0, f_0$ are
+the time and frequency of the source.
+
+In order to aproximate the parameters of the model, we proposed a
+Levenber-Marquadt optimization. 
+
+\subsection{Levenberg-Marquardt (LM)}
+\textbf{Problem} 
+
+The primary application of the Levenberg–Marquardt algorithm is in the least
+squares curve fitting problem: given a set of m empirical datum pairs of
+independent and dependent variables, ($x_i, y_i$), optimize the parameters
+$\beta$ of the model curve $f(x,\beta)$ so that the sum of the squares of the
+deviations
+
+$$ f(x_i, \beta + \delta) \approx \sum\limits_{i=1}^m [y_i - f(x_i, \beta)]^2 $$
+
+\noindent\textbf{Solution} 
+
+$$ (\mathbf{J}^{T}\mathbf{J} + \lambda\mathbf{I})\delta = \mathbf{J}^{T}[y - f(\beta)] $$
+where: $\mathbf{J}$ is the gradient matrix, $\mathbf{I}$ is the identity matrix, $\delta$ adjust of vector $\beta$.
+
+
+\noindent\textbf{Gradient: $\mathbf{J}$} 
+
+$$ \mathbf{J} = \nabla f = \frac{\partial f}{\partial \beta} $$ 
+
+where: $\beta = [a, b, \alpha]$. In this case, each partial derivate:
+\begin{align*}
+    \frac{\partial f}{\partial a}           &= (t - t_0)\left(\frac{f_0}{f}\right)^\alpha \\
+    \frac{\partial f}{\partial b}           &= \left(\frac{f_0}{f}\right)^\alpha \\
+    \frac{\partial f}{\partial \alpha}      &= (a(t-t_0)+b)*\left(\frac{f_0}{f}\right)^\alpha ln\left(\frac{f_0}{f}\right)
+\end{align*}
+
+
+\begin{algorithm}
+\caption{bestFluxAlgorithm}\label{4months}
+\begin{algorithmic}[1]
+\Procedure{4 months time windows}{time, frequency}
+\State $\textit{iterations} \gets \text{Number of iterations of LM}$
+\Statex
+\State $\textit{t} \gets \text{Time adjusted within [0, 10]}$
+\Statex
+\State $\textit{$\beta_0$} \gets \text{Initial values [5, 1, -0.7]}$
+\Statex
+\State $\textit{$\lambda$} \gets \text{Small value: 0.01}$
+\Statex
+\For{\text{$i=0 ; i<iterations$}}
+\Statex
+\State $\textit{$\delta$} \gets \text{Solution of $ (\mathbf{J}_i^{T}\mathbf{J}_i + \lambda\mathbf{I})\delta = \mathbf{J}_i^{T}[y - f(\beta_i)] $}$
+\Statex
+\State $\textit{$\beta_{i+1}$} \gets \text{$ \beta_i + \delta $}$
+\Statex
+\EndFor
+\State \Return {$\textit{$\beta[1] \to b$}$}
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+\end{document}

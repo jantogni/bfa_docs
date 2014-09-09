@@ -142,4 +142,33 @@ where: $\beta = [a, b, \alpha]$. In this case, each partial derivate:
 \end{algorithmic}
 \end{algorithm}
 
+\section{Web service}
+The algorithm is working as web service and support HTTP GET request. At the moment we have the
+prototype of this implementation in:
+
+\begingroup
+\fontsize{8pt}{10pt}\selectfont
+\begin{verbatim}
+http://bender.csrg.cl:2121/bfs-0.1/ssap?
+\end{verbatim}
+\endgroup
+
+\noindent An example of usage through web browser
+\begingroup
+\fontsize{8pt}{10pt}\selectfont
+\begin{verbatim}
+http://bender.csrg.cl:2121/bfs-0.1/ssap?NAME=3c279&DATE=04-Jul-2014&FREQUENCY=231.435E9
+\end{verbatim}
+\endgroup
+
+\noindent An example of usage through command line (curl):
+\begingroup
+\fontsize{8pt}{10pt}\selectfont
+\begin{verbatim}
+curl --request GET 'http://bender.csrg.cl:2121/bfs-0.1/ssap?NAME=3c279&DATE=04-Jul-2014&FREQUENCY=231.435E9'
+\end{verbatim}
+\endgroup
+
+Both responses are VOTable (xml file).
+
 \end{document}

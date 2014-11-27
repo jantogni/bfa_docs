@@ -27,8 +27,8 @@ distclean: clean
 	@rm -rf publish
 	@rm -f $(PDFFILES)
 
-x:
-	@open publish/$(PDFFILES) &> /dev/null &
+preview:
+	@open -a preview publish/$(PDFFILES) &> /dev/null &
 
 evince:
 	@evince publish/$(PDFFILES) &> /dev/null &

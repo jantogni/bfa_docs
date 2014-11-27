@@ -9,12 +9,37 @@
 \usepackage{setspace}
 %\geometry{tmargin=3.0cm, lmargin=3.0cm, rmargin=2.5cm, bmargin=3.0cm}
 
+\usepackage{listings}
+\usepackage{color}
+\definecolor{gray}{rgb}{0.4,0.4,0.4}
+\definecolor{darkblue}{rgb}{0.0,0.0,0.6}
+\definecolor{cyan}{rgb}{0.0,0.6,0.6}
+
+\lstset{
+  basicstyle=\ttfamily,
+  columns=fullflexible,
+  showstringspaces=false,
+  commentstyle=\color{gray}\upshape
+}
+
+\lstdefinelanguage{XML}
+{
+  morestring=[b]",
+  morestring=[s]{>}{<},
+  morecomment=[s]{<?}{?>},
+  stringstyle=\color{black},
+  identifierstyle=\color{darkblue},
+  keywordstyle=\color{cyan},
+  morekeywords={xmlns,version,type}% list your attributes here
+}
+
+
 \makeatletter
 \def\BState{\State\hskip-\ALG@thistlm}
 \makeatother
 
 \title{
-\center{\emph{Best Flux Algorithm} \\}
+\center{\emph{Flux Estimation Algorithm} \\}
 \author{
         Ruediger Kneissl, Jonathan Antognini\\
 %\date{Santiago, \today}
@@ -25,7 +50,7 @@
 
 \section{General Specifications}
 
-The Best Flux Algorithm was provided by Ruediger. The objective is to estimate
+The Flux Estimation Algorithm was provided by Ruediger. The objective is to estimate
 a flux of certain source (name) given a date and frequency parameters
 \footnote{\url{http://twiki.csrg.cl/twiki/bin/view/LIRAE/SourceCatalogueVO}}.
 
@@ -36,16 +61,13 @@ Webservice details:
  \item Output: VOTable, Java Streaming Writer (voi.vowrite)
 \end{itemize}
 
-The webservice was constructed in order to meets the standars of Simple
-Spectral Access Protocol \footnote{http://www.ivoa.net/documents/SSA/}
-
 \section{Algorithm Cases}
 
 The estimation of the flux was divided in 3 cases: 10 days time windows, 4
 months time windows and the average in time. The following subsections describe
 each procedure:
 
-\subsection{10 Days Time Windows}
+\subsection{Ten days Time Windows}
 \begin{algorithm}
 \caption{bestFluxAlgorithm}\label{10days}
 \begin{algorithmic}[1]
@@ -80,7 +102,7 @@ each procedure:
 \end{algorithmic}
 \end{algorithm}
 
-\section{4 Months Time Windows}
+\section{Four months Time Windows}
 In the 4 months time windows we try to estimate the flux using:
 $$ \mathbf{Flux} = (a(t-t_0)+b)*\left(\frac{f_0}{f}\right)^\alpha $$
 where: $a,b,\alpha$ are parameters of the non-linear regression; $t_0, f_0$ are
@@ -117,6 +139,30 @@ where: $\beta = [a, b, \alpha]$. In this case, each partial derivate:
     \frac{\partial f}{\partial \alpha}      &= (a(t-t_0)+b)*\left(\frac{f_0}{f}\right)^\alpha ln\left(\frac{f_0}{f}\right)
 \end{align*}
 
+\subsection{Weighted Levenberg-Marquardt}
+A variation of the initial problem of fitting is proposed:
+
+$$ f(x_i, \beta + \delta) \approx \sum\limits_{i=1}^m \left[\frac{y_i - f(x_i, \beta)}{w_i} \right]^2 $$
+
+\noindent where $w_i$ is the flux uncertainty of the measure $i$.
+
+\noindent The new solution for this problem is:
+
+$$ (\mathbf{J}^{\text{T}}\mathbf{W}\mathbf{J} + \lambda~\text{diag}(\mathbf{J}^{\text{T}}\mathbf{W}\mathbf{J})) \delta = \mathbf{J}^{\text{T}}\mathbf{W}[y - f(\beta)] $$
+
+\subsection{Error Analysis}
+
+The standard parameter errors are given by:
+
+$$ \sigma_p = \sqrt{\text{diag}([\mathbf{J}^{\text{T}}\mathbf{W}\mathbf{J}]^{-1})} $$
+
+\noindent where $\sigma_p = [\sigma_a, \sigma_b, \sigma_{\alpha}] $
+
+
+\noindent The standard errors for the fit are given by:
+
+$$ \sigma_{\hat{y}} = \sqrt{\text{diag}(\mathbf{J}[\mathbf{J}^{\text{T}}\mathbf{W}\mathbf{J}]^{-1}\mathbf{J}^{\text{T}})} $$
+
 
 \begin{algorithm}
 \caption{bestFluxAlgorithm}\label{4months}
@@ -143,6 +189,7 @@ where: $\beta = [a, b, \alpha]$. In this case, each partial derivate:
 \end{algorithm}
 
 \section{Web service}
+\subsection{Usage}
 The algorithm is working as web service and support HTTP GET request. At the moment we have the
 prototype of this implementation in:
 
@@ -169,6 +216,65 @@ curl --request GET 'http://bender.csrg.cl:2121/bfs-0.1/ssap?NAME=3c279&DATE=04-J
 \end{verbatim}
 \endgroup
 
-Both responses are VOTable (xml file).
+\subsection{Output}
+\noindent Both responses are VOTable (xml file). An XML output example:
+\lstset{language=XML}
+\begin{lstlisting}
+<?xml version="1.0"?>
+<!DOCTYPE VOTABLE SYSTEM "http://us-vo.org/xml/VOTable.dtd">
+<VOTABLE  >
+   <DESCRIPTION>
+   Best Flux Algorithm. Rows description: 
+    - Flux estimation with 4 months window
+   </DESCRIPTION>
+   <RESOURCE  >
+      <TABLE >
+         <FIELD datatype="char"  name="src_name"  arraysize="16"  />
+         <FIELD datatype="double"  width="10"  name="freq"  />
+         <FIELD datatype="char"  name="date"  arraysize="32"  />
+         <FIELD datatype="double"  width="10"  name="flux"  />
+         <FIELD datatype="double"  width="10"  name="sigmaB"  />
+         <FIELD datatype="double"  width="10"  name="alpha"  />
+         <FIELD datatype="double"  width="10"  name="sigmaA"  />
+         <FIELD datatype="double"  width="10"  name="error2"  />
+         <FIELD datatype="double"  width="10"  name="error3"  />
+         <FIELD datatype="double"  width="10"  name="unSrc"  />
+         <FIELD datatype="double"  width="10"  name="notMs"  />
+         <DATA>
+            <TABLEDATA>
+            <TR>
+               <TD>3c279</TD>
+               <TD>2.31435E11</TD>
+               <TD>Fri Apr 04 00:00:00 UTC 2014</TD>
+               <TD>9.582494421545896</TD>
+               <TD>0.21473028541848474</TD>
+               <TD>0.5763700498700346</TD>
+               <TD>0.029777179647546337</TD>
+               <TD>0.059300903871694906</TD>
+               <TD>0.5476966434485084</TD>
+               <TD>1</TD>
+               <TD>1</TD>
+            </TR>
+            </TABLEDATA>
+         </DATA>
+      </TABLE>
+   </RESOURCE>
+</VOTABLE>
+\end{lstlisting}
+
+\noindent where:
+\begin{itemize}
+    \item src\_name: Source Name
+    \item freq: Frequency used in the estimation
+    \item date: Date used in the estimation
+    \item flux: Flux estimated (four months time window)
+    \item sigmaB: Standard error of flux (B paramter in the fit)
+    \item alpha: Spectral Index estimated
+    \item sigmaA: Standard error of Alpha ($\alpha$ in the fit)
+    \item error2: $\sigma_{\bar{y}}$ %$\frac{\sqrt{\frac{\sum\sigma_i^2}{N}}}{\sqrt{N}}$
+    \item error3: $\sigma_{\hat{y}}$
+    \item unkSrc: 0 for unknown source, 1 for known source
+    \item notMs: 0 not enough measurement ($<$3)
+\end{itemize}
 
 \end{document}

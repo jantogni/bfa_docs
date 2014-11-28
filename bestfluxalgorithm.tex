@@ -224,8 +224,7 @@ curl --request GET 'http://bender.csrg.cl:2121/bfs-0.1/ssap?NAME=3c279&DATE=04-J
 <!DOCTYPE VOTABLE SYSTEM "http://us-vo.org/xml/VOTable.dtd">
 <VOTABLE  >
    <DESCRIPTION>
-   Best Flux Algorithm. Rows description: 
-    - Flux estimation with 4 months window
+   Flux estimation with 4 months window
    </DESCRIPTION>
    <RESOURCE  >
       <TABLE >
@@ -238,20 +237,22 @@ curl --request GET 'http://bender.csrg.cl:2121/bfs-0.1/ssap?NAME=3c279&DATE=04-J
          <FIELD datatype="double"  width="10"  name="sigmaA"  />
          <FIELD datatype="double"  width="10"  name="error2"  />
          <FIELD datatype="double"  width="10"  name="error3"  />
-         <FIELD datatype="double"  width="10"  name="unSrc"  />
-         <FIELD datatype="double"  width="10"  name="notMs"  />
+         <FIELD datatype="double"  width="10"  name="error4"  />
+         <FIELD datatype="double"  width="10"  name="usrc"  />
+         <FIELD datatype="double"  width="10"  name="notms"  />
          <DATA>
             <TABLEDATA>
             <TR>
                <TD>3c279</TD>
                <TD>2.31435E11</TD>
-               <TD>Fri Apr 04 00:00:00 UTC 2014</TD>
-               <TD>9.582494421545896</TD>
-               <TD>0.21473028541848474</TD>
-               <TD>0.5763700498700346</TD>
-               <TD>0.029777179647546337</TD>
+               <TD>Fri Apr 04 00:00:00 CLST 2014</TD>
+               <TD>9.582616479973332</TD>
+               <TD>0.2147288685843784</TD>
+               <TD>0.5763803895263506</TD>
+               <TD>0.029777152943673606</TD>
                <TD>0.059300903871694906</TD>
-               <TD>0.5476966434485084</TD>
+               <TD>0.5477586141372256</TD>
+               <TD>0.042024867562504675</TD>
                <TD>1</TD>
                <TD>1</TD>
             </TR>
@@ -273,8 +274,9 @@ curl --request GET 'http://bender.csrg.cl:2121/bfs-0.1/ssap?NAME=3c279&DATE=04-J
     \item sigmaA: Standard error of Alpha ($\alpha$ in the fit)
     \item error2: $\sigma_{\bar{y}}$ %$\frac{\sqrt{\frac{\sum\sigma_i^2}{N}}}{\sqrt{N}}$
     \item error3: $\sigma_{\hat{y}}$
+    \item error4: sigma of the monte carlo simulation.
     \item usrc: 0 for unknown source, 1 for known source
-    \item notms: 0 not enough measurement ($<$3)
+    \item notms: 0 not enough measurement ($<$3), 1 (measurements < 7), 2 ok
 \end{itemize}
 
 \end{document}

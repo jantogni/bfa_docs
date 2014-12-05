@@ -33,6 +33,17 @@
   morekeywords={xmlns,version,type}% list your attributes here
 }
 
+\newcommand\pythonstyle{\lstset{
+language=Python,
+basicstyle=\ttm,
+otherkeywords={self},             % Add keywords here
+keywordstyle=\ttb\color{deepblue},
+emph={MyClass,__init__},          % Custom highlighting
+emphstyle=\ttb\color{deepred},    % Custom highlighting style
+stringstyle=\color{deepgreen},
+frame=tb,                         % Any extra options here
+showstringspaces=false            % 
+}}
 
 \makeatletter
 \def\BState{\State\hskip-\ALG@thistlm}
@@ -298,7 +309,35 @@ curl --request GET 'http://vo-prototype-test.sco.alma.cl:8080/bfs-0.2/ssap?NAME=
     \item verbose: string field with the loggin of the algorithm. By default \emph{empty}.
 \end{itemize}
 
-%\section{Client}
+\section{Client}
+In order to simplify the intercation with the webservice, a client was created.
+This client has two dependencies: astropy and numpy. An example of usage:
 
+\begingroup
+\fontsize{8pt}{10pt}\selectfont
+\lstset{language=Python}
+\begin{lstlisting}
+def main():
+    #Using default URL
+    flux = fluxEstimation('3c279', '04-Apr-2014', '231.435E9,240.435E9', verbose = 'false', test = 'false')
+
+    #Using custom URL
+    #bender_url = 'http://bender.csrg.cl:2121/bfs-0.1/ssap'
+    #flux = fluxEstimation('3c279', '04-Apr-2014', '231.435E9,240.435E9', url = DEF_URL_localhost,240.435E9)
+
+    flux.performQuery()
+    flux.parseResponse()
+
+    #Iterate over all rows
+    for row in flux.data:
+        print "----------------------------------"
+        print row.asDict()
+        #print row.asList()
+    print "----------------------------------"
+
+if __name__ == "__main__":
+    main()
+\end{lstlisting}
+\endgroup
 
 \end{document}

@@ -228,6 +228,8 @@ curl --request GET 'http://vo-prototype-test.sco.alma.cl:8080/bfs-0.2/ssap?NAME=
 
 \subsection{Output}
 \noindent Both responses are VOTable (xml file). An XML output example:
+\lstset{language=XML}
+\begin{lstlisting}
 <?xml version="1.0"?>
 <!DOCTYPE VOTABLE SYSTEM "http://us-vo.org/xml/VOTable.dtd">
 <VOTABLE  >
@@ -271,6 +273,7 @@ curl --request GET 'http://vo-prototype-test.sco.alma.cl:8080/bfs-0.2/ssap?NAME=
       </TABLE>
    </RESOURCE>
 </VOTABLE>
+\end{lstlisting}
 
 \noindent where:
 \begin{itemize}

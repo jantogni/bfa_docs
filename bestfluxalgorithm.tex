@@ -196,7 +196,7 @@ prototype of this implementation in:
 \begingroup
 \fontsize{8pt}{10pt}\selectfont
 \begin{verbatim}
-http://bender.csrg.cl:2121/bfs-0.1/ssap?
+http://vo-prototype-test.sco.alma.cl:8080/bfs-0.2/ssap?
 \end{verbatim}
 \endgroup
 
@@ -204,7 +204,7 @@ http://bender.csrg.cl:2121/bfs-0.1/ssap?
 \begingroup
 \fontsize{8pt}{10pt}\selectfont
 \begin{verbatim}
-http://bender.csrg.cl:2121/bfs-0.1/ssap?NAME=3c279&DATE=04-Jul-2014&FREQUENCY=231.435E9
+http://vo-prototype-test.sco.alma.cl:8080/bfs-0.2/ssap?NAME=3c279&DATE=04-Apr-2014&FREQUENCY=231.435E9&TEST=false&VERBOSE=true
 \end{verbatim}
 \endgroup
 
@@ -212,14 +212,22 @@ http://bender.csrg.cl:2121/bfs-0.1/ssap?NAME=3c279&DATE=04-Jul-2014&FREQUENCY=23
 \begingroup
 \fontsize{8pt}{10pt}\selectfont
 \begin{verbatim}
-curl --request GET 'http://bender.csrg.cl:2121/bfs-0.1/ssap?NAME=3c279&DATE=04-Jul-2014&FREQUENCY=231.435E9'
+curl --request GET 'http://vo-prototype-test.sco.alma.cl:8080/bfs-0.2/ssap?NAME=3c279&DATE=04-Apr-2014&FREQUENCY=231.435E9&TEST=false&VERBOSE=true'
 \end{verbatim}
 \endgroup
 
+\noindent The parameters for the webservice are"
+\begin{itemize}
+ \item NAME: source name in the source catalogue database. It not need to be quoted, also it can contain special characters: \emph{+-\_}
+ \item FREQUENCY: frequency used to estimate the flux. Format in double, for example: \emph{231.435E9}
+ \item DATE: date used to estimate the flux. Format in string, for example: \emph{dd-mmm-yyyy, 04-Apr-2014}
+ \item TEST: atribute defined \emph{false} by default, it not necessary to be in the query. If this parameter is defined true, the algorithm will not take measurements in the same day.
+ \item VERBOSE: atribute defined \emph{false} by default, it not necessary to be in the query. If this parameter is defined truel, the output will contain a field with all the loggin produced by the algorithm.
+\end{itemize}
+
+
 \subsection{Output}
 \noindent Both responses are VOTable (xml file). An XML output example:
-\lstset{language=XML}
-\begin{lstlisting}
 <?xml version="1.0"?>
 <!DOCTYPE VOTABLE SYSTEM "http://us-vo.org/xml/VOTable.dtd">
 <VOTABLE  >
@@ -228,55 +236,66 @@ curl --request GET 'http://bender.csrg.cl:2121/bfs-0.1/ssap?NAME=3c279&DATE=04-J
    </DESCRIPTION>
    <RESOURCE  >
       <TABLE >
-         <FIELD datatype="char"  name="src_name"  arraysize="16"  />
-         <FIELD datatype="double"  width="10"  name="freq"  />
-         <FIELD datatype="char"  name="date"  arraysize="32"  />
-         <FIELD datatype="double"  width="10"  name="flux"  />
-         <FIELD datatype="double"  width="10"  name="sigmaB"  />
-         <FIELD datatype="double"  width="10"  name="alpha"  />
-         <FIELD datatype="double"  width="10"  name="sigmaA"  />
+         <FIELD datatype="char"  name="SourceName"  arraysize="16"  />
+         <FIELD datatype="double"  width="10"  name="Frequency"  />
+         <FIELD datatype="char"  name="Date"  arraysize="32"  />
+         <FIELD datatype="double"  width="10"  name="FluxDensity"  />
+         <FIELD datatype="double"  width="10"  name="FluxDensityError"  />
+         <FIELD datatype="double"  width="10"  name="SpectralIndex"  />
+         <FIELD datatype="double"  width="10"  name="SpectralIndexError"  />
          <FIELD datatype="double"  width="10"  name="error2"  />
          <FIELD datatype="double"  width="10"  name="error3"  />
          <FIELD datatype="double"  width="10"  name="error4"  />
-         <FIELD datatype="double"  width="10"  name="usrc"  />
-         <FIELD datatype="double"  width="10"  name="notms"  />
+         <FIELD datatype="int"  width="10"  name="warning"  />
+         <FIELD datatype="int"  width="10"  name="notms"  />
+         <FIELD datatype="char"  name="verbose"  arraysize="256000"  />
          <DATA>
             <TABLEDATA>
             <TR>
                <TD>3c279</TD>
                <TD>2.31435E11</TD>
                <TD>Fri Apr 04 00:00:00 CLST 2014</TD>
-               <TD>9.582616479973332</TD>
-               <TD>0.2147288685843784</TD>
-               <TD>0.5763803895263506</TD>
-               <TD>0.029777152943673606</TD>
-               <TD>0.059300903871694906</TD>
-               <TD>0.5477586141372256</TD>
-               <TD>0.042024867562504675</TD>
+               <TD>9.586108872789792</TD>
+               <TD>0.21581694351063035</TD>
+               <TD>-0.5762192833875143</TD>
+               <TD>0.02988085761954256</TD>
+               <TD>0.060135781652679104</TD>
+               <TD>0.5638507073500892</TD>
+               <TD>0.0884885466683922</TD>
+               <TD>141</TD>
                <TD>1</TD>
-               <TD>1</TD>
+               <TD>empty</TD>
             </TR>
             </TABLEDATA>
          </DATA>
       </TABLE>
    </RESOURCE>
 </VOTABLE>
-\end{lstlisting}
 
 \noindent where:
 \begin{itemize}
-    \item src\_name: Source Name
-    \item freq: Frequency used in the estimation
-    \item date: Date used in the estimation
-    \item flux: Flux estimated (four months time window)
-    \item sigmaB: Standard error of flux (B paramter in the fit)
-    \item alpha: Spectral Index estimated
-    \item sigmaA: Standard error of Alpha ($\alpha$ in the fit)
+    \item SourceName: Source Name
+    \item Frequency: Frequency used in the estimation
+    \item Date: Date used in the estimation
+    \item FluxDenisty: Flux Density estimated (four months time window)
+    \item FluxDenistyError: Flux Denisty Error calculated from the fit (B in the model)
+    \item SpectralIndex: Estimated Spectral Index 
+    \item SpectralIndexError: Spectral Index error calculated from the fit ($\alpha$ in the model)
     \item error2: $\sigma_{\bar{y}}$ %$\frac{\sqrt{\frac{\sum\sigma_i^2}{N}}}{\sqrt{N}}$
     \item error3: $\sigma_{\hat{y}}$
-    \item error4: sigma of the monte carlo simulation.
-    \item usrc: 0 for unknown source, 1 for known source
-    \item notms: 0 not enough measurement ($<$3), 1 (measurements < 7), 2 ok
+    \item error4: error from monte carlo simulation.
+    \item warning: string with 3 character: 
+        \begin{itemize} 
+            \item str[0] correspond to amount of measurement availables, 1: for 1 measurement, 2: for 2 measurement, 3: for 3 or more measurements.
+            \item str[1] it says if there are 1 measurement within 10 days time window in the same band.
+            \item str[2] it says if there are at least 1 measurement before and after (1 true, 0 false),
+            \item By default, all 3 character are 4.
+        \end{itemize}
+    \item notms: 0 not enough measurement ($<$3), 1 otherwise.
+    \item verbose: string field with the loggin of the algorithm. By default \emph{empty}.
 \end{itemize}
+
+%\section{Client}
+
 
 \end{document}

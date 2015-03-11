@@ -87,7 +87,7 @@ each procedure:
 \If {$sameBand.size() > \textit{1}$}: 
 \State $closestInTime \gets \text{Closest measurement in sameBand Vector}$.
 \Statex
-\State \Return {$\text{closestInTime.flux * $\left(\frac{closestInTime.frequency}{frequency}\right)^{alpha}$}$}
+\State \Return {$\text{closestInTime.flux * $\left(\frac{frequency}{closestInTime.frequency}\right)^{alpha}$}$}
 \Else
 \State \Return {$\textit{Null value}$}
 \EndIf
@@ -115,7 +115,7 @@ each procedure:
 
 \section{Four months Time Windows}
 In the 4 months time windows we try to estimate the flux using:
-$$ \mathbf{Flux} = (a(t-t_0)+b)*\left(\frac{f_0}{f}\right)^\alpha $$
+$$ \mathbf{Flux} = (a(t-t_0)+b)*\left(\frac{f}{f_0}\right)^\alpha $$
 where: $a,b,\alpha$ are parameters of the non-linear regression; $t_0, f_0$ are
 the time and frequency of the source.
 
@@ -145,9 +145,9 @@ $$ \mathbf{J} = \nabla f = \frac{\partial f}{\partial \beta} $$
 
 where: $\beta = [a, b, \alpha]$. In this case, each partial derivate:
 \begin{align*}
-    \frac{\partial f}{\partial a}           &= (t - t_0)\left(\frac{f_0}{f}\right)^\alpha \\
-    \frac{\partial f}{\partial b}           &= \left(\frac{f_0}{f}\right)^\alpha \\
-    \frac{\partial f}{\partial \alpha}      &= (a(t-t_0)+b)*\left(\frac{f_0}{f}\right)^\alpha ln\left(\frac{f_0}{f}\right)
+    \frac{\partial f}{\partial a}           &= (t - t_0)\left(\frac{f}{f_0}\right)^\alpha \\
+    \frac{\partial f}{\partial b}           &= \left(\frac{f}{f_0}\right)^\alpha \\
+    \frac{\partial f}{\partial \alpha}      &= (a(t-t_0)+b)*\left(\frac{f}{f_0}\right)^\alpha ln\left(\frac{f}{f_0}\right)
 \end{align*}
 
 \subsection{Weighted Levenberg-Marquardt}
@@ -213,7 +213,7 @@ http://vo-prototype-test.sco.alma.cl:8080/bfs-0.2/ssap?
 
 \noindent An example of usage through web browser
 \begingroup
-\fontsize{8pt}{10pt}\selectfont
+\fontsize{6pt}{10pt}\selectfont
 \begin{verbatim}
 http://vo-prototype-test.sco.alma.cl:8080/bfs-0.2/ssap?NAME=3c279&DATE=04-Apr-2014&FREQUENCY=231.435E9&TEST=false&VERBOSE=true
 \end{verbatim}
@@ -221,7 +221,7 @@ http://vo-prototype-test.sco.alma.cl:8080/bfs-0.2/ssap?NAME=3c279&DATE=04-Apr-20
 
 \noindent An example of usage through command line (curl):
 \begingroup
-\fontsize{8pt}{10pt}\selectfont
+\fontsize{6pt}{10pt}\selectfont
 \begin{verbatim}
 curl --request GET 'http://vo-prototype-test.sco.alma.cl:8080/bfs-0.2/ssap?NAME=3c279&DATE=04-Apr-2014&FREQUENCY=231.435E9&TEST=false&VERBOSE=true'
 \end{verbatim}
@@ -298,11 +298,11 @@ curl --request GET 'http://vo-prototype-test.sco.alma.cl:8080/bfs-0.2/ssap?NAME=
     \item error2: $\sigma_{\bar{y}}$ %$\frac{\sqrt{\frac{\sum\sigma_i^2}{N}}}{\sqrt{N}}$
     \item error3: $\sigma_{\hat{y}}$
     \item error4: error from monte carlo simulation.
-    \item warning: string with 3 character: 
+    \item warning: string with 3 character which indicates:
         \begin{itemize} 
-            \item str[0] correspond to amount of measurement availables, 1: for 1 measurement, 2: for 2 measurement, 3: for 3 or more measurements.
-            \item str[1] it says if there are 1 measurement within 10 days time window in the same band.
-            \item str[2] it says if there are at least 1 measurement before and after (1 true, 0 false),
+            \item \textbf{str[0]}: number of available measurements, \textbf{1}: for 1 measurement, \textbf{2}: for 2 measurement, \textbf{3}: for 3 or more measurements.
+            \item \textbf{str[1]}: \textbf{1}: if one measurement is in the same band and is within the 10 days time windows, \textbf{0} if not.
+            \item \textbf{str[2]} \textbf{1}: if there is at least 1 measurement before an after, \textbf{0} if not.
             \item By default, all 3 character are 4.
         \end{itemize}
     \item notms: 0 not enough measurement ($<$3), 1 otherwise.

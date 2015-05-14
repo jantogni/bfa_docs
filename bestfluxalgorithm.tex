@@ -76,9 +76,9 @@ The Flux Estimation Algorithm was provided by Ruediger. The objective is to esti
 a flux of certain source (name) given a date and frequency parameters
 \footnote{\url{http://twiki.csrg.cl/twiki/bin/view/LIRAE/SourceCatalogueVO}}.
 
-Webservice details:
+Web service details:
 \begin{itemize}
- \item Rest Webservice in Java JDK 1.7 using Spring MVC (org.springFramework)
+ \item Rest Web service in Java JDK 1.7 using Spring MVC (org.springFramework)
  \item Database queries: XmlRpcClient (org.apache), searchMeasurements103
  \item Output: VOTable, Java Streaming Writer (voi.vowrite)
 \end{itemize}
@@ -130,8 +130,8 @@ $$ \mathbf{Flux} = (a(t-t_0)+b)*\left(\frac{f}{f_0}\right)^\alpha $$
 where: $a,b,\alpha$ are parameters of the non-linear regression; $t_0, f_0$ are
 the time and frequency of the source.
 
-In order to aproximate the parameters of the model, we proposed a
-Levenber-Marquadt optimization. 
+In order to approximate the parameters of the model, we proposed a
+Levenberg-Marquadt optimization. 
 
 \subsubsection{Levenberg-Marquardt (LM)}
 \textbf{Problem} 
@@ -279,13 +279,13 @@ curl --request GET 'http://vo-prototype-test.sco.alma.cl:8080/bfs-0.2/ssap?NAME=
 \end{verbatim}
 \endgroup
 
-\noindent The parameters for the webservice are"
+\noindent The parameters for the web service are"
 \begin{itemize}
  \item NAME: source name in the source catalogue database. It not need to be quoted, also it can contain special characters: \emph{+-\_}
  \item FREQUENCY: frequency used to estimate the flux. Format in double, for example: \emph{231.435E9}
  \item DATE: date used to estimate the flux. Format in string, for example: \emph{dd-mmm-yyyy, 04-Apr-2014}
- \item TEST: atribute defined \emph{false} by default, it not necessary to be in the query. If this parameter is defined true, the algorithm will not take measurements in the same day.
- \item VERBOSE: atribute defined \emph{false} by default, it not necessary to be in the query. If this parameter is defined truel, the output will contain a field with all the loggin produced by the algorithm.
+ \item TEST: attribute defined \emph{false} by default, it not necessary to be in the query. If this parameter is defined true, the algorithm will not take measurements in the same day.
+ \item VERBOSE: attribute defined \emph{false} by default, it not necessary to be in the query. If this parameter is defined true, the output will contain a field with all the logging produced by the algorithm.
 \end{itemize}
 
 
@@ -344,12 +344,12 @@ curl --request GET 'http://vo-prototype-test.sco.alma.cl:8080/bfs-0.2/ssap?NAME=
     \item Frequency: Frequency used in the estimation
     \item Date: Date used in the estimation
     \item FluxDenisty: Flux Density estimated (b in the model)
-    \item FluxDenistyError: Flux Denisty Error calculated from the fit ($\sigma_b$ in the model)
+    \item FluxDenistyError: Flux Density Error calculated from the fit ($\sigma_b$ in the model)
     \item SpectralIndex: Estimated Spectral Index ($\alpha$ in the model) 
     \item SpectralIndexError: Spectral Index error calculated from the fit ($\sigma_{\alpha}$ in the model)
     \item error2: $\sigma_{\bar{y}}$: $\frac{\sqrt{\sum\sigma_i^2}}{N}$
     \item error3: $\sigma_{\hat{y}}$: $\sqrt{\text{Average\:}(\text{diag}(\mathbf{J}[\mathbf{J}^{\text{T}}\mathbf{W}\mathbf{J}]^{-1}\mathbf{J}^{\text{T}}))} $
-    \item error4: error from monte carlo simulation.
+    \item error4: error from Monte Carlo simulation.
     \item warning: string with 3 character which indicates:
         \begin{itemize} 
             \item \textbf{str[0]}: number of available measurements, \textbf{1}: for 1 measurement, \textbf{2}: for 2 measurement, \textbf{3}: for 3 or more measurements.
@@ -358,11 +358,11 @@ curl --request GET 'http://vo-prototype-test.sco.alma.cl:8080/bfs-0.2/ssap?NAME=
             \item By default, all 3 character are 4.
         \end{itemize}
     \item notms: 0 not enough measurement ($<$3), 1 otherwise.
-    \item verbose: string field with the loggin of the algorithm. By default \emph{empty}.
+    \item verbose: string field with the logging of the algorithm. By default \emph{empty}.
 \end{itemize}
 
 \section{Client}
-In order to simplify the intercation with the webservice, a client was created.
+In order to simplify the interaction with the web service, a client was created.
 This client has two dependencies: astropy and numpy. An example of usage:
 
 \begingroup

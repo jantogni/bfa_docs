@@ -15,6 +15,15 @@
 \definecolor{darkblue}{rgb}{0.0,0.0,0.6}
 \definecolor{cyan}{rgb}{0.0,0.6,0.6}
 
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks,
+    citecolor=black,
+    filecolor=black,
+    linkcolor=black,
+    urlcolor=black
+}
+
 \lstset{
   basicstyle=\ttfamily,
   columns=fullflexible,
@@ -59,6 +68,8 @@ showstringspaces=false            %
 \begin{document}
 \maketitle
 
+\tableofcontents
+
 \section{General Specifications}
 
 The Flux Estimation Algorithm was provided by Ruediger. The objective is to estimate
@@ -67,7 +78,7 @@ a flux of certain source (name) given a date and frequency parameters
 
 Webservice details:
 \begin{itemize}
- \item Rest Webservice in Java 1.6 (at the moment) using Spring MVC (org.springFramework)
+ \item Rest Webservice in Java JDK 1.7 using Spring MVC (org.springFramework)
  \item Database queries: XmlRpcClient (org.apache), searchMeasurements103
  \item Output: VOTable, Java Streaming Writer (voi.vowrite)
 \end{itemize}
@@ -96,7 +107,7 @@ each procedure:
 \end{algorithm}
 
 \subsection{Average in time}
-\begin{algorithm}
+\begin{algorithm}[H]
 \caption{bestFluxAlgorithm}\label{4months}
 \begin{algorithmic}[1]
 \Procedure{Average in time}{time, frequency}
@@ -113,7 +124,7 @@ each procedure:
 \end{algorithmic}
 \end{algorithm}
 
-\section{Four months Time Windows}
+\subsection{Four months Time Windows}
 In the 4 months time windows we try to estimate the flux using:
 $$ \mathbf{Flux} = (a(t-t_0)+b)*\left(\frac{f}{f_0}\right)^\alpha $$
 where: $a,b,\alpha$ are parameters of the non-linear regression; $t_0, f_0$ are
@@ -122,7 +133,7 @@ the time and frequency of the source.
 In order to aproximate the parameters of the model, we proposed a
 Levenber-Marquadt optimization. 
 
-\subsection{Levenberg-Marquardt (LM)}
+\subsubsection{Levenberg-Marquardt (LM)}
 \textbf{Problem} 
 
 The primary application of the Levenberg–Marquardt algorithm is in the least
@@ -150,33 +161,8 @@ where: $\beta = [a, b, \alpha]$. In this case, each partial derivate:
     \frac{\partial f}{\partial \alpha}      &= (a(t-t_0)+b)*\left(\frac{f}{f_0}\right)^\alpha ln\left(\frac{f}{f_0}\right)
 \end{align*}
 
-\subsection{Weighted Levenberg-Marquardt}
-A variation of the initial problem of fitting is proposed:
-
-$$ f(x_i, \beta + \delta) \approx \sum\limits_{i=1}^m \left[\frac{y_i - f(x_i, \beta)}{w_i} \right]^2 $$
-
-\noindent where $w_i$ is the flux uncertainty of the measure $i$.
-
-\noindent The new solution for this problem is:
-
-$$ (\mathbf{J}^{\text{T}}\mathbf{W}\mathbf{J} + \lambda~\text{diag}(\mathbf{J}^{\text{T}}\mathbf{W}\mathbf{J})) \delta = \mathbf{J}^{\text{T}}\mathbf{W}[y - f(\beta)] $$
-
-\subsection{Error Analysis}
-
-The standard parameter errors are given by:
-
-$$ \sigma_p = \sqrt{\text{diag}([\mathbf{J}^{\text{T}}\mathbf{W}\mathbf{J}]^{-1})} $$
-
-\noindent where $\sigma_p = [\sigma_a, \sigma_b, \sigma_{\alpha}] $
-
-
-\noindent The standard errors for the fit are given by:
-
-$$ \sigma_{\hat{y}} = \sqrt{\text{diag}(\mathbf{J}[\mathbf{J}^{\text{T}}\mathbf{W}\mathbf{J}]^{-1}\mathbf{J}^{\text{T}})} $$
-
-
-\begin{algorithm}
-\caption{bestFluxAlgorithm}\label{4months}
+\begin{algorithm}[H]
+\caption{Non linear fit using levenberg-marquardt}\label{4months}
 \begin{algorithmic}[1]
 \Procedure{4 months time windows}{time, frequency}
 \State $\textit{iterations} \gets \text{Number of iterations of LM}$
@@ -198,6 +184,72 @@ $$ \sigma_{\hat{y}} = \sqrt{\text{diag}(\mathbf{J}[\mathbf{J}^{\text{T}}\mathbf{
 \EndProcedure
 \end{algorithmic}
 \end{algorithm}
+
+\subsubsection{Weighted Levenberg-Marquardt}
+A variation of the initial problem of fitting is proposed:
+
+$$ f(x_i, \beta + \delta) \approx \sum\limits_{i=1}^m \left[\frac{y_i - f(x_i, \beta)}{w_i} \right]^2 $$
+
+\noindent where $w_i$ is the flux uncertainty of the measure $i$.
+
+\noindent The new solution for this problem is:
+
+$$ (\mathbf{J}^{\text{T}}\mathbf{W}\mathbf{J} + \lambda~\text{diag}(\mathbf{J}^{\text{T}}\mathbf{W}\mathbf{J})) \delta = \mathbf{J}^{\text{T}}\mathbf{W}[y - f(\beta)] $$
+
+\begin{algorithm}[H]
+\caption{Non linear fit using weighted levenberg-marquardt}\label{4months}
+\begin{algorithmic}[1]
+\Procedure{4 months time windows}{time, frequency}
+\State $\textit{iterations} \gets \text{Number of iterations of LM}$
+\Statex
+\State $\textit{t} \gets \text{Time adjusted within [0, 10]}$
+\Statex
+\State $\textit{$\beta_0$} \gets \text{Initial values [5, 1, -0.7]}$
+\Statex
+\State $\textit{$\lambda$} \gets \text{Small value: 0.01}$
+\Statex
+\For{\text{$i=0 ; i<iterations$}}
+\Statex
+\State $\textit{$\delta$} \gets \text{Solution of $ (\mathbf{J}^{\text{T}}\mathbf{W}\mathbf{J} + \lambda~\text{diag}(\mathbf{J}^{\text{T}}\mathbf{W}\mathbf{J})) \delta = \mathbf{J}^{\text{T}}\mathbf{W}[y - f(\beta)] $}$
+\Statex
+\State $\textit{$\beta_{i+1}$} \gets \text{$ \beta_i + \delta $}$
+\Statex
+\EndFor
+\State \Return {$\textit{$\beta[1] \to b$}$}
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Error Analysis}
+In order to give more information about the model fit, the algorithm calculates a list of error:
+
+For each parameter, each error is given by the diagonal of the covariance matrix:
+
+$$ \sigma_p = \sqrt{\text{diag}([\mathbf{J}^{\text{T}}\mathbf{W}\mathbf{J}]^{-1})} $$
+
+\noindent where $\sigma_p = [\sigma_a, \sigma_b, \sigma_{\alpha}]$. The values present in the output of the algorithm are:
+\begin{itemize}
+    \item $\sigma_b$: FluxDensityError 
+    \item $\sigma_{\alpha}$: SpetralIndexError
+\end{itemize}
+
+\noindent \textbf{Error2}: represent the difference between model and real data:
+
+$$ \text{error2} = \frac{|f(\beta) - flux_i|}{N\sqrt{N}}  $$
+
+\noindent \textbf{Error3}: standard error for the fit is given by:
+
+$$ \sigma_{\hat{y}} = \text{error3} = \sqrt{\sum_{i=1}^{N}\frac{(\mathbf{J}[\mathbf{J}^{\text{T}}\mathbf{W}\mathbf{J}]^{-1}\mathbf{J}^{\text{T}})_{ii}}{N}} $$
+
+\noindent \textbf{Error4}: Monte Carlo error. \\
+
+\noindent \textbf{Model goodness}: it takes in consideration the differences
+between the model and real data, as well as each individual error from the
+data. The algorithm iterates over the number of measurement (3, 4, 5, 6 ... N),
+and return the flux with the best model goodness:
+
+$$ \sigma_i = \sqrt{ (Model - Data)^2 - \sigma_{data}^2 } $$
+$$ \text{Model goodness} = \sum_{i=1}^{N}\frac{\sigma_i}{N\sqrt{N}} $$
 
 \section{Web service}
 \subsection{Usage}
@@ -291,12 +343,12 @@ curl --request GET 'http://vo-prototype-test.sco.alma.cl:8080/bfs-0.2/ssap?NAME=
     \item SourceName: Source Name
     \item Frequency: Frequency used in the estimation
     \item Date: Date used in the estimation
-    \item FluxDenisty: Flux Density estimated (four months time window)
-    \item FluxDenistyError: Flux Denisty Error calculated from the fit (B in the model)
-    \item SpectralIndex: Estimated Spectral Index 
-    \item SpectralIndexError: Spectral Index error calculated from the fit ($\alpha$ in the model)
-    \item error2: $\sigma_{\bar{y}}$ %$\frac{\sqrt{\frac{\sum\sigma_i^2}{N}}}{\sqrt{N}}$
-    \item error3: $\sigma_{\hat{y}}$
+    \item FluxDenisty: Flux Density estimated (b in the model)
+    \item FluxDenistyError: Flux Denisty Error calculated from the fit ($\sigma_b$ in the model)
+    \item SpectralIndex: Estimated Spectral Index ($\alpha$ in the model) 
+    \item SpectralIndexError: Spectral Index error calculated from the fit ($\sigma_{\alpha}$ in the model)
+    \item error2: $\sigma_{\bar{y}}$: $\frac{\sqrt{\sum\sigma_i^2}}{N}$
+    \item error3: $\sigma_{\hat{y}}$: $\sqrt{\text{Average\:}(\text{diag}(\mathbf{J}[\mathbf{J}^{\text{T}}\mathbf{W}\mathbf{J}]^{-1}\mathbf{J}^{\text{T}}))} $
     \item error4: error from monte carlo simulation.
     \item warning: string with 3 character which indicates:
         \begin{itemize} 

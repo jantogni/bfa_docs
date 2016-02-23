@@ -74,55 +74,58 @@ showstringspaces=false            %
 
 The Flux Estimation Algorithm was provided by Ruediger. The objective is to estimate
 a flux of certain source (name) given a date and frequency parameters
-\footnote{\url{http://twiki.csrg.cl/twiki/bin/view/LIRAE/SourceCatalogueVO}}.
-
-Web service details:
+\footnote{\url{http://twiki.csrg.cl/twiki/bin/view/LIRAE/SourceCatalogueVO}}.\\\\
+\noindent Web service details:
 \begin{itemize}
  \item Rest Web service in Java JDK 1.7 using Spring MVC (org.springFramework)
- \item Database queries: XmlRpcClient (org.apache), searchMeasurements103
+ \item Database queries: SourceCatDao
  \item Output: VOTable, Java Streaming Writer (voi.vowrite)
 \end{itemize}
 
 \section{Algorithm Cases}
 
-The estimation of the flux was divided in 3 cases: 10 days time windows, 4
-months time windows and the average in time. The following subsections describe
-each procedure:
+The estimation of the flux was divided in 3 cases: 4 months time windows (using
+3 or more measurements), 2 measurements estimation, and 1 measurement with
+fixed spectral index.  The following subsections describe each procedure (Notation $\Phi$: Flux density, $f$: Frequency):
 
-\subsection{Ten days Time Windows}
+\subsection{One measurement}
 \begin{algorithm}
-\caption{bestFluxAlgorithm}\label{10days}
+\caption{bestFluxAlgorithm}\label{1ms}
 \begin{algorithmic}[1]
-\Procedure{10daysTimeWindows}{time, frequency}
-\State $\textit{sameBand} \gets \text{Vector with elements in the same band}$
-\If {$sameBand.size() > \textit{1}$}: 
-\State $closestInTime \gets \text{Closest measurement in sameBand Vector}$.
-\Statex
-\State \Return {$\text{closestInTime.flux * $\left(\frac{frequency}{closestInTime.frequency}\right)^{alpha}$}$}
-\Else
-\State \Return {$\textit{Null value}$}
-\EndIf
+\Procedure{OneMeasurement}{$\Phi$, $f$}
+\State \Return $\Phi_1 * \left(\frac{f_{1}}{f}\right)^{\alpha}$
 \EndProcedure
 \end{algorithmic}
 \end{algorithm}
 
-\subsection{Average in time}
-\begin{algorithm}[H]
-\caption{bestFluxAlgorithm}\label{4months}
+\subsection{Two measurements}
+\begin{algorithm}
+\caption{bestFluxAlgorithm}\label{2ms}
 \begin{algorithmic}[1]
-\Procedure{Average in time}{time, frequency}
-\State $\textit{AllMes} \gets \text{Vector with all measurement}$
-\Statex
-\State $\textit{averageFrequency} \gets \frac{\Sigma AllMes.frequency(i)}{AllMes.size()}$
-\Statex
-\State $\textit{averageFlux} \gets \frac{\Sigma AllMes.flux(i)}{AllMes.size()}$
-\Statex
-\State $\textit{standDevFlux} \gets \frac{\Sigma (AllMes.flux(i) - averageFlux)^2}{AllMes.size()}$
-\Statex
-\State \Return {$\textit{averageFrequency, averageFlux, standDevFlux}$}
+\Procedure{TwoMeasurements}{$\Phi$, $f$}
+\State \Return $\Phi_{1} * \left(\frac{f}{f_{2}}\right)^{\frac{log(\Phi_{2}) - log(\Phi_{1})} {log(f_{2}) - log(f_{1})}}$
 \EndProcedure
 \end{algorithmic}
 \end{algorithm}
+
+%\State \Return $m_1.flux * \left(\frac{freq}{m_2.freq}\right)^{\frac{log\left( \frac{m_2.flux}{m_1.flux} \right)} {log\left( \frac{m_2.freq}{m_1.freq}\right)}}$
+%\subsection{Average in time}
+%\begin{algorithm}[H]
+%\caption{bestFluxAlgorithm}\label{4months}
+%\begin{algorithmic}[1]
+%\Procedure{Average in time}{time, frequency}
+%\State $\textit{AllMes} \gets \text{Vector with all measurement}$
+%\Statex
+%\State $\textit{averageFrequency} \gets \frac{\Sigma AllMes.frequency(i)}{AllMes.size()}$
+%\Statex
+%\State $\textit{averageFlux} \gets \frac{\Sigma AllMes.flux(i)}{AllMes.size()}$
+%\Statex
+%\State $\textit{standDevFlux} \gets \frac{\Sigma (AllMes.flux(i) - averageFlux)^2}{AllMes.size()}$
+%\Statex
+%\State \Return {$\textit{averageFrequency, averageFlux, standDevFlux}$}
+%\EndProcedure
+%\end{algorithmic}
+%\end{algorithm}
 
 \subsection{Four months Time Windows}
 In the 4 months time windows we try to estimate the flux using:
@@ -154,7 +157,7 @@ where: $\mathbf{J}$ is the gradient matrix, $\mathbf{I}$ is the identity matrix,
 
 $$ \mathbf{J} = \nabla f = \frac{\partial f}{\partial \beta} $$ 
 
-where: $\beta = [a, b, \alpha]$. In this case, each partial derivate:
+where: $\beta = [a, b, \alpha]$. In this case, each partial derivative:
 \begin{align*}
     \frac{\partial f}{\partial a}           &= (t - t_0)\left(\frac{f}{f_0}\right)^\alpha \\
     \frac{\partial f}{\partial b}           &= \left(\frac{f}{f_0}\right)^\alpha \\
@@ -253,7 +256,7 @@ $$ \text{Model goodness} = \sum_{i=1}^{N}\frac{\sigma_i}{N\sqrt{N}} $$
 
 \section{Web service}
 \subsection{Usage}
-The algorithm is working as web service and support HTTP GET request. Base url can change depending on the deployment environment (2015.8 in thi case)
+The algorithm is working as web service and support HTTP GET request. Base URL can change depending on the deployment environment (2015.8 in this case)
 
 \begingroup
 \fontsize{8pt}{10pt}\selectfont
@@ -287,7 +290,7 @@ curl --request GET 'https://2015-08.asa-test.alma.cl/sc/flux?NAME=3c279&DATE=04-
  \item VERBOSE (OPTIONAL): by default \emph{false}. If this parameter is defined as true, the output will contain a field with all the logging produced by the algorithm.
  \item MODEL (OPTIONAL): by default 0. Default calculate normal model goodness divided by $measurements^{1/2}$, if is defined as 1, calculate model goodness divided by $measurements^{1/2}$
  \item RESULT (OPTIONAL): by default 0. Default algorithm use a minimum of 8 measurement on 4 months time windows (which is the January algorithm), if it's defined as 1, will use 4 or more measurement on 4 months time windows (which is the March algorithm).
- \item WEIGHTED (OPTIONAL): By default \emph{false}, 4 month time windows will use \textbf{weighted} levenberg marquardt algorithm, if it's defined false, the algorithm will use non-wighted method.
+ \item WEIGHTED (OPTIONAL): By default \emph{false}, 4 month time windows will use \textbf{weighted} levenberg marquardt algorithm, if it's defined false, the algorithm will use non-weighted method.
 \end{itemize}
 
 

@@ -17,13 +17,13 @@ pdflatex: $(TEXFILES)
 	#@pdflatex $(TEXFILES:.tex=)
 	@pdflatex $(TEXFILES:.tex=)
 	@if [ -d publish ];then mv *.pdf publish; else mkdir publish; mv *.pdf publish/;fi
-	@rubber --clean $(TEXFILES:.tex=)
 
 clean:
-	@rubber --clean $(TEXFILES:.tex=)
+	#@rubber --clean $(TEXFILES:.tex=)
+	rm -rf *.aux  *.log  *.out  *.toc
 
 distclean: clean
-	@rubber --clean --pdf $(TEXFILES:.tex=)
+	#@rubber --clean --pdf $(TEXFILES:.tex=)
 	@rm -rf publish
 	@rm -f $(PDFFILES)
 
